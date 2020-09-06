@@ -153,7 +153,26 @@ with requests.Session() as s:
 
     for term in tqdm(os.getenv("TERMS").split(",")):
         url = "https://sis.rpi.edu/rss/bwskfcls.P_GetCrse_Advanced"
-        payload = f"rsts=dummy&crn=dummy&term_in={term}&sel_subj=dummy&sel_day=dummy&sel_schd=dummy&sel_insm=dummy&sel_camp=dummy&sel_levl=dummy&sel_sess=dummy&sel_instr=dummy&sel_ptrm=dummy&sel_attr=dummy&sel_subj=ADMN&sel_subj=USAF&sel_subj=ARCH&sel_subj=ARTS&sel_subj=ASTR&sel_subj=BCBP&sel_subj=BIOL&sel_subj=BMED&sel_subj=CHME&sel_subj=CHEM&sel_subj=CIVL&sel_subj=COGS&sel_subj=COMM&sel_subj=CSCI&sel_subj=ENGR&sel_subj=ERTH&sel_subj=ECON&sel_subj=ECSE&sel_subj=ESCI&sel_subj=ENVE&sel_subj=GSAS&sel_subj=ISYE&sel_subj=ITWS&sel_subj=IENV&sel_subj=IHSS&sel_subj=ISCI&sel_subj=LANG&sel_subj=LGHT&sel_subj=LITR&sel_subj=MGMT&sel_subj=MTLE&sel_subj=MATP&sel_subj=MATH&sel_subj=MANE&sel_subj=USAR&sel_subj=USNA&sel_subj=PHIL&sel_subj=PHYS&sel_subj=PSYC&sel_subj=STSH&sel_subj=STSS&sel_subj=WRIT&sel_crse=&sel_title=&sel_from_cred=&sel_to_cred=&sel_camp=%25&sel_ptrm=%25&begin_hh=0&begin_mi=0&begin_ap=a&end_hh=0&end_mi=0&end_ap=a&SUB_BTN=Section+Search&path=1"
+        payload = f"rsts=dummy&crn=dummy&term_in={term}&sel_subj=dummy&sel_day=dummy&sel_schd=dummy&sel_insm=dummy&sel_camp=dummy&sel_levl=dummy&sel_sess=dummy&sel_instr=dummy&sel_ptrm=dummy&sel_attr=dummy&"
+
+        try:
+            with open(f"data/{term}/schools.json") as f:
+                for column in json.load(f):
+                    for school in column:
+                        for dept in school["depts"]:
+                            payload += f"sel_subj={dept['code']}&"
+        except FileNotFoundError:
+            dirname = sorted(os.listdir("data"))[-1]
+            with open(f"data/{dirname}/schools.json") as f:
+                for column in json.load(f):
+                    for school in column:
+                        for dept in school["depts"]:
+                            payload += f"sel_subj={dept['code']}&"
+
+        payload += "sel_crse=&sel_title=&sel_from_cred=&sel_to_cred=&sel_camp=%25&sel_ptrm=%25&"
+        if int(term) <= 201101:  # SIS removed a field after this semester
+            payload += "sel_instr=%25&"
+        payload += "begin_hh=0&begin_mi=0&begin_ap=a&end_hh=0&end_mi=0&end_ap=a&SUB_BTN=Section+Search&path=1"
 
         # This payload is for testing. It will only return CSCI classes and will therefore be a bit faster
         # payload = f'rsts=dummy&crn=dummy&term_in={os.getenv("CURRENT_TERM")}&sel_subj=dummy&sel_day=dummy&sel_schd=dummy&sel_insm=dummy&sel_camp=dummy&sel_levl=dummy&sel_sess=dummy&sel_instr=dummy&sel_ptrm=dummy&sel_attr=dummy&sel_subj=CSCI&sel_subj=LGHT&sel_crse=&sel_title=&sel_from_cred=&sel_to_cred=&sel_camp=%25&sel_ptrm=%25&begin_hh=0&begin_mi=0&begin_ap=a&end_hh=0&end_mi=0&end_ap=a&SUB_BTN=Section+Search&path=1'
@@ -163,7 +182,8 @@ with requests.Session() as s:
 
         if "No classes were found that meet your search criteria" in response.text:
             print(f"Term {term} has no classes!")
-            continue
+            print(payload)
+            # don't continue since we shouldn't have any errors
 
         data = []
 

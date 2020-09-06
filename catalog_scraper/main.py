@@ -197,7 +197,7 @@ for year_select in tqdm(range(21)):
             sys.exit(1)
 
         for directory in (f"{years[0]}09", f"{years[1]}01", f"{years[1]}05"):
-            if not os.path.isdir(directory):
-                os.mkdir(directory)
+            directory = "data/" + directory
+            os.makedirs(directory, exist_ok=True)
             with open(f"{directory}/{sys.argv[-1]}.json", "w") as outfile:
                 json.dump(data, outfile, sort_keys=False, indent=2)
