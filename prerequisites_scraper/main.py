@@ -197,7 +197,7 @@ if __name__ == "__main__":
     from tqdm import tqdm
     import os
 
-    for semester in tqdm(os.listdir("data")[21:]):
+    for semester in tqdm(os.listdir("data")):
         prerequisites = {}
 
         # For testing
