@@ -164,7 +164,11 @@ def optimize_ordering(data, num_columns=3):
 
     best_result = sorted(best_result, key=lambda c: len(c[0]["depts"]), reverse=True)
 
-    return best_result
+    flattened = []
+    for column in best_result:
+        flattened.extend(column)
+
+    return flattened
 
 
 HEADERS = {
